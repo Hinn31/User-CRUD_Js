@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="./Css/style.css">
+   
+</head>
+<body>
+    <h1>User Management</h1>
+    <form id="userForm">
+        <input type="hidden" id="userId">
+        <input type="text" id="name" placeholder="Name" required>
+        <span class="error" id="nameError"></span><br>
+        <input type="text" id="username" placeholder="Username" required>
+        <span class="error" id="usernameError"></span><br>
+        <input type="email" id="email" placeholder="Email" required>
+        <span class="error" id="emailError"></span><br>
+        <input type="text" id="phone" placeholder="Phone">
+        <span class="error" id="phoneError"></span><br>
+        <input type="text" id="website" placeholder="Website">
+        <span class="error" id="websiteError"></span><br>
+        <button type="submit" id="submitBtn">Add User</button>
+    </form>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script src="./src/Js/script.js"></script>
+</body>
+</html>
