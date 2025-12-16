@@ -3,6 +3,10 @@ const API_URL = 'https://jsonplaceholder.typicode.com/users';
 
 let users = [];
 
+function saveUsers() {
+    localStorage.setItem('users', JSON.stringify(users));
+}
+
 const userForm = document.getElementById('userForm');
 const userTableBody = document.getElementById('userTable').querySelector('tbody');
 const nameInput = document.getElementById('name');
@@ -64,8 +68,15 @@ async function fetchUsers() {
 
 // Load and display users
 async function loadUsers() {
-    users = await fetchUsers();
-    displayUsers(users);
+    const stored = localStorage.getItem('users');
+    if (stored) {
+        users = JSON.parse(stored);
+        displayUsers(users);
+    } else {
+        users = await fetchUsers();
+        saveUsers();
+        displayUsers(users);
+    }
 }
 
 // Display users in table
@@ -102,6 +113,7 @@ async function addUser(userData) {
         });
         const newUser = await response.json();
         users.push(newUser);
+        saveUsers();
         displayUsers(users);
         alert('User added successfully');
     } catch (error) {
@@ -110,6 +122,7 @@ async function addUser(userData) {
         const newId = Math.max(...users.map(u => u.id)) + 1;
         const newUser = { id: newId, ...userData };
         users.push(newUser);
+        saveUsers();
         displayUsers(users);
         alert('User added locally (API failed)');
     }
@@ -126,20 +139,20 @@ async function updateUser(id, userData) {
             body: JSON.stringify(userData),
         });
         console.log('Response status:', response.status);
-        // For demo purposes, ignore API errors and update locally
         const index = users.findIndex(u => u.id == id);
         if (index !== -1) {
             users[index] = { id: parseInt(id), ...userData };
         }
+        saveUsers();
         displayUsers(users);
         alert('User updated successfully');
     } catch (error) {
         console.error('Error updating user:', error);
-        // Still update locally even if API fails
         const index = users.findIndex(u => u.id == id);
         if (index !== -1) {
             users[index] = { id: parseInt(id), ...userData };
         }
+        saveUsers();
         displayUsers(users);
         alert('User updated locally (API failed)');
     }
@@ -165,12 +178,14 @@ async function deleteUser(id) {
             method: 'DELETE',
         });
         users = users.filter(u => u.id != id);
+        saveUsers();
         displayUsers(users);
         alert('User deleted successfully');
     } catch (error) {
         console.error('Error deleting user:', error);
         // Still delete locally
         users = users.filter(u => u.id != id);
+        saveUsers();
         displayUsers(users);
         alert('User deleted locally (API failed)');
     }
@@ -218,11 +233,9 @@ userForm.addEventListener('submit', async (e) => {
         await addUser(userData);
     }
     
-    // Clear form and reset
     userForm.reset();
     userIdInput.value = '';
     submitBtn.textContent = 'Add User';
 });
 
-// Load users on page load
 loadUsers();
