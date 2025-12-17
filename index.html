@@ -9,20 +9,27 @@
 </head>
 <body>
     <h1>User Management</h1>
-    <form id="userForm">
-        <input type="hidden" id="userId">
-        <input type="text" id="name" placeholder="Name" required>
-        <span class="error" id="nameError"></span><br>
-        <input type="text" id="username" placeholder="Username" required>
-        <span class="error" id="usernameError"></span><br>
-        <input type="email" id="email" placeholder="Email" required>
-        <span class="error" id="emailError"></span><br>
-        <input type="text" id="phone" placeholder="Phone">
-        <span class="error" id="phoneError"></span><br>
-        <input type="text" id="website" placeholder="Website">
-        <span class="error" id="websiteError"></span><br>
-        <button type="submit" id="submitBtn">Add User</button>
-    </form>
+    <button id="addUserBtn">Add New User</button>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <input type="text" id="name" placeholder="Name" required>
+                <span class="error" id="nameError"></span><br>
+                <input type="text" id="username" placeholder="Username" required>
+                <span class="error" id="usernameError"></span><br>
+                <input type="email" id="email" placeholder="Email" required>
+                <span class="error" id="emailError"></span><br>
+                <input type="text" id="phone" placeholder="Phone">
+                <span class="error" id="phoneError"></span><br>
+                <input type="text" id="website" placeholder="Website">
+                <span class="error" id="websiteError"></span><br>
+                <button type="submit" id="submitBtn">Add User</button>
+                <button type="button" id="cancelBtn">Cancel</button>
+            </form>
+        </div>
+    </div>
     <table id="userTable">
         <thead>
             <tr>
@@ -37,6 +44,7 @@
         </thead>
         <tbody></tbody>
     </table>
+    <div id="pagination"></div>
     <script src="./src/js/script.js"></script>
 </body>
 </html>

@@ -2,6 +2,8 @@
 const API_URL = 'https://jsonplaceholder.typicode.com/users';
 
 let users = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 function saveUsers() {
     localStorage.setItem('users', JSON.stringify(users));
@@ -21,6 +23,18 @@ const phoneError = document.getElementById('phoneError');
 const websiteError = document.getElementById('websiteError');
 const submitBtn = document.getElementById('submitBtn');
 const userIdInput = document.getElementById('userId');
+const addUserBtn = document.getElementById('addUserBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const modal = document.getElementById('modal');
+const closeBtn = document.querySelector('.close');
+
+function clearErrors() {
+    nameError.textContent = '';
+    usernameError.textContent = '';
+    emailError.textContent = '';
+    phoneError.textContent = '';
+    websiteError.textContent = '';
+}
 
 function validateName(name) {
     if (!name.trim()) return 'Name is required';
@@ -66,23 +80,72 @@ async function fetchUsers() {
     }
 }
 
+// Render pagination
+function renderPagination() {
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Previous';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayUsers();
+            renderPagination();
+        }
+    };
+    pagination.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === currentPage ? 'active' : '';
+        btn.onclick = () => {
+            currentPage = i;
+            displayUsers();
+            renderPagination();
+        };
+        pagination.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayUsers();
+            renderPagination();
+        }
+    };
+    pagination.appendChild(nextBtn);
+}
+
 // Load and display users
 async function loadUsers() {
     const stored = localStorage.getItem('users');
     if (stored) {
         users = JSON.parse(stored);
-        displayUsers(users);
+        displayUsers();
+        renderPagination();
     } else {
         users = await fetchUsers();
         saveUsers();
-        displayUsers(users);
+        displayUsers();
+        renderPagination();
     }
 }
 
 // Display users in table
-function displayUsers(userList) {
+function displayUsers() {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageUsers = users.slice(start, end);
     userTableBody.innerHTML = '';
-    userList.forEach(user => {
+    pageUsers.forEach(user => {
         const row = document.createElement('tr');
         row.setAttribute('data-id', user.id);
         row.innerHTML = `
@@ -114,7 +177,9 @@ async function addUser(userData) {
         const newUser = await response.json();
         users.push(newUser);
         saveUsers();
-        displayUsers(users);
+        currentPage = Math.ceil(users.length / itemsPerPage);
+        displayUsers();
+        renderPagination();
         alert('User added successfully');
     } catch (error) {
         console.error('Error adding user:', error);
@@ -123,7 +188,9 @@ async function addUser(userData) {
         const newUser = { id: newId, ...userData };
         users.push(newUser);
         saveUsers();
-        displayUsers(users);
+        currentPage = Math.ceil(users.length / itemsPerPage);
+        displayUsers();
+        renderPagination();
         alert('User added locally (API failed)');
     }
 }
@@ -144,7 +211,8 @@ async function updateUser(id, userData) {
             users[index] = { id: parseInt(id), ...userData };
         }
         saveUsers();
-        displayUsers(users);
+        displayUsers();
+        renderPagination();
         alert('User updated successfully');
     } catch (error) {
         console.error('Error updating user:', error);
@@ -153,7 +221,8 @@ async function updateUser(id, userData) {
             users[index] = { id: parseInt(id), ...userData };
         }
         saveUsers();
-        displayUsers(users);
+        displayUsers();
+        renderPagination();
         alert('User updated locally (API failed)');
     }
 }
@@ -169,24 +238,32 @@ function editUser(id) {
     websiteInput.value = user.website;
     userIdInput.value = id;
     submitBtn.textContent = 'Update User';
+    modal.style.display = 'block';
+    clearErrors();
 }
 
 // Delete user
 async function deleteUser(id) {
+    if (!confirm('Bạn có chắc muốn xóa user này?')) return;
     try {
         await fetch(`${API_URL}/${id}`, {
             method: 'DELETE',
         });
         users = users.filter(u => u.id != id);
         saveUsers();
-        displayUsers(users);
+        if (users.length % itemsPerPage === 0 && currentPage > 1) {
+            currentPage--;
+        }
+        displayUsers();
+        renderPagination();
         alert('User deleted successfully');
     } catch (error) {
         console.error('Error deleting user:', error);
         // Still delete locally
         users = users.filter(u => u.id != id);
         saveUsers();
-        displayUsers(users);
+        displayUsers();
+        renderPagination();
         alert('User deleted locally (API failed)');
     }
 }
@@ -231,11 +308,35 @@ userForm.addEventListener('submit', async (e) => {
         await updateUser(userId, userData);
     } else {
         await addUser(userData);
+        modal.style.display = 'none';
     }
     
     userForm.reset();
     userIdInput.value = '';
     submitBtn.textContent = 'Add User';
+    clearErrors();
+});
+
+addUserBtn.addEventListener('click', () => {
+    modal.style.display = 'block';
+    submitBtn.textContent = 'Add User';
+    userIdInput.value = '';
+    userForm.reset();
+    clearErrors();
+});
+
+cancelBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    userForm.reset();
+    userIdInput.value = '';
+    clearErrors();
+});
+
+closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    userForm.reset();
+    userIdInput.value = '';
+    clearErrors();
 });
 
 loadUsers();
